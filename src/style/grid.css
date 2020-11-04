@@ -1,0 +1,17 @@
+.grid-container {
+  padding: 2rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
