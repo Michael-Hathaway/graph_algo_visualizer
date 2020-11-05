@@ -30,11 +30,18 @@ export default class Grid extends React.Component {
     this.state = INITIAL_STATE;
   }
 
+  isStartNode = (row, col) => {
+    return row === this.state.startNodeRow && col === this.state.startNodeCol;
+  };
+
+  isFinishNode = (row, col) => {
+    return row === this.state.finishNodeRow && col === this.state.finishNodeCol;
+  };
+
   createNodeObject = (row, col) => {
-    let isStart =
-      row === this.state.startNodeRow && col === this.state.startNodeCol;
-    let isFinish =
-      row === this.state.finishNodeRow && col === this.state.finishNodeCol;
+    let isStart = this.isStartNode(row, col);
+    let isFinish = this.isFinishNode(row, col);
+
     return {
       row: row,
       col: col,
@@ -63,6 +70,17 @@ export default class Grid extends React.Component {
   };
 
   resetGrid = () => {
+    for (let i = 0; i < GRID_ROWS; i++) {
+      for (let j = 0; j < GRID_COLS; j++) {
+        // remove classnames added during animation
+        const classname = `node ${this.isStartNode(i, j) ? " start" : ""}${
+          this.isFinishNode(i, j) ? " finish" : ""
+        }`;
+        document.getElementById(`node-${i}-${j}`).className = classname;
+      }
+    }
+
+    // reset grid component
     const nodes = this.createInitialGrid();
     this.setState({ ...INITIAL_STATE, nodes });
   };
