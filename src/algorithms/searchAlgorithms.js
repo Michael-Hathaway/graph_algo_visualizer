@@ -32,6 +32,7 @@ export function BFS(grid, startNode, finishNode) {
   while (queue.length > 0) {
     let currentNode = queue.shift();
 
+    if (currentNode.isWall) continue;
     if (currentNode.isVisited) continue;
 
     if (currentNode === finishNode) return visitedNodesInOrder;
@@ -59,6 +60,7 @@ export function DFS(grid, startNode, finishNode) {
   while (queue.length > 0) {
     let currentNode = queue.pop();
 
+    if (currentNode.isWall) continue;
     if (currentNode.isVisited) continue;
 
     if (currentNode === finishNode) return visitedNodesInOrder;
