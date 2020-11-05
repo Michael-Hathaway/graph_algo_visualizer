@@ -2,16 +2,17 @@ import React from "react";
 
 import "../style/node.css";
 
-const Node = (props) => {
+const Node = props => {
   const {
     row,
     col,
     handleMouseDown,
     handleMouseEnter,
+    handleMouseLeave,
     handleMouseUp,
     isStart,
     isFinish,
-    isWall,
+    isWall
   } = props;
 
   const calculatedClassName =
@@ -25,6 +26,7 @@ const Node = (props) => {
       onMouseDown={() => handleMouseDown(row, col)}
       onMouseUp={() => handleMouseUp(row, col)}
       onMouseEnter={() => handleMouseEnter(row, col)}
+      onMouseLeave={() => handleMouseLeave(row, col)}
     ></div>
   );
 };

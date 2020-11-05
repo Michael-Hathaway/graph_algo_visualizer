@@ -13,3 +13,18 @@
   height: 100%;
   padding: 5px;
 }
+
+.key {
+  display: flex;
+}
+
+.key-item {
+  margin: 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+.key-item p {
+  color: #fff;
+  margin-left: 5px;
+}

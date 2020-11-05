@@ -1,7 +1,7 @@
 import React from "react";
 import "../style/GridSettingsBar.css";
 
-const GridSettingsBar = (props) => {
+const GridSettingsBar = props => {
   return (
     <div className="settings">
       <div className="item start-sim">
@@ -20,8 +20,21 @@ const GridSettingsBar = (props) => {
           Reset Grid
         </button>
       </div>
-      <div className="item">
-        <p>Click and Drag on the screen to add walls.</p>
+      <div className="item key">
+        <div className="key-item">
+          <div className="node start"></div>
+          <p>Start Node</p>
+        </div>
+        <div className="key-item">
+          <div className="node finish"></div>
+          <p>Finish Node</p>
+        </div>
+        <div className="key-item">
+          <p>
+            Drag start and finish nodes to change location. Click and drag empty
+            squares to create walls
+          </p>
+        </div>
       </div>
     </div>
   );

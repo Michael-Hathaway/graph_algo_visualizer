@@ -5,26 +5,29 @@ import {
   dijkstra,
   breadthFirstSearch,
   depthFirstSearch,
-  getNodesInShortestPathOrder,
+  getNodesInShortestPathOrder
 } from "../algorithms/searchAlgorithms";
 import "../style/grid.css";
 
 const GRID_ROWS = 20;
 const GRID_COLS = 40;
+const START_NODE_ROW = 9;
+const START_NODE_COL = 4;
+const FINISH_NODE_ROW = 9;
+const FINISH_NODE_COL = 34;
 
 const INITIAL_STATE = {
-  isUserSelectingStartNode: false,
-  isUserSelectingFinishNode: false,
-  isUserAddingWalls: false,
+  isUserMovingStartNode: false,
+  isUserMovingFinishNode: false,
   isMousePressed: false,
-  startNodeRow: 9,
-  startNodeCol: 5,
-  finishNodeRow: 9,
-  finishNodeCol: 34,
-  nodes: [],
+  startNodeRow: START_NODE_ROW,
+  startNodeCol: START_NODE_COL,
+  finishNodeRow: FINISH_NODE_ROW,
+  finishNodeCol: FINISH_NODE_COL,
+  nodes: []
 };
 
-export default class Grid extends React.Component {
+class Grid extends React.Component {
   constructor(props) {
     super(props);
     this.state = INITIAL_STATE;
@@ -39,28 +42,28 @@ export default class Grid extends React.Component {
   };
 
   createNodeObject = (row, col) => {
-    let isStart = this.isStartNode(row, col);
-    let isFinish = this.isFinishNode(row, col);
-
     return {
       row: row,
       col: col,
-      isStart: isStart,
-      isFinish: isFinish,
+      isStart: false,
+      isFinish: false,
       isWall: false,
       distance: Infinity,
       isVisited: false,
-      previousNode: null,
+      previousNode: null
     };
   };
 
+  // create a nested array of node objects
   createInitialGrid = () => {
-    // create array of arrays
     const nodes = [];
     for (let i = 0; i < GRID_ROWS; i++) {
       let currentRow = [];
       for (let j = 0; j < GRID_COLS; j++) {
         const newNode = this.createNodeObject(i, j);
+        newNode.isStart = i === START_NODE_ROW && j === START_NODE_COL;
+        newNode.isFinish = i === FINISH_NODE_ROW && j === FINISH_NODE_COL;
+
         currentRow.push(newNode);
       }
       nodes.push(currentRow);
@@ -90,7 +93,7 @@ export default class Grid extends React.Component {
     const node = newGrid[row][col];
     const newNode = {
       ...node,
-      isWall: !node.isWall,
+      isWall: !node.isWall
     };
     newGrid[row][col] = newNode;
     return newGrid;
@@ -101,7 +104,18 @@ export default class Grid extends React.Component {
     const node = newGrid[row][col];
     const newNode = {
       ...node,
-      isStart: true,
+      isStart: !node.isStart
+    };
+    newGrid[row][col] = newNode;
+    return newGrid;
+  };
+
+  getNewGridWithFinishNodeToggled = (grid, row, col) => {
+    const newGrid = grid.slice();
+    const node = newGrid[row][col];
+    const newNode = {
+      ...node,
+      isStart: !node.isStart
     };
     newGrid[row][col] = newNode;
     return newGrid;
@@ -114,25 +128,102 @@ export default class Grid extends React.Component {
   }
 
   handleMouseUp = (row, col) => {
-    this.setState({ isMousePressed: false });
+    this.setState({
+      isMousePressed: false,
+      isUserMovingStartNode: false,
+      isUserMovingFinishNode: false
+    });
   };
 
   handleMouseEnter = (row, col) => {
     if (!this.state.isMousePressed) return;
 
-    const newGrid = this.getNewGridWithWallToggled(this.state.nodes, row, col);
-    this.setState({ nodes: newGrid });
+    if (this.state.isUserMovingStartNode) {
+      const newGrid = this.getNewGridWithStartNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid, startNodeRow: row, startNodeCol: col });
+    } else if (this.state.isUserMovingFinishNode) {
+      const newGrid = this.getNewGridWithFinishNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid, finishNodeRow: row, finishNodeCol: col });
+    } else {
+      const newGrid = this.getNewGridWithWallToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid });
+    }
+  };
+
+  handleMouseLeave = (row, col) => {
+    if (!this.state.isMousePressed) return;
+
+    if (this.state.isUserMovingStartNode) {
+      const newGrid = this.getNewGridWithStartNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid });
+    } else if (this.state.isUserMovingFinishNode) {
+      const newGrid = this.getNewGridWithFinishNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid });
+    }
   };
 
   handleMouseDown = (row, col) => {
-    const newGrid = this.getNewGridWithWallToggled(this.state.nodes, row, col);
-    this.setState({ nodes: newGrid, isMousePressed: true });
+    if (this.isStartNode(row, col)) {
+      const newGrid = this.getNewGridWithStartNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({
+        isUserMovingStartNode: true,
+        isUserMovingFinishNode: false,
+        isMousePressed: true,
+        nodes: newGrid
+      });
+    } else if (this.isFinishNode(row, col)) {
+      const newGrid = this.getNewGridWithFinishNodeToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({
+        isUserMovingStartNode: false,
+        isUserMovingFinishNode: true,
+        isMousePressed: true,
+        nodes: newGrid
+      });
+    } else {
+      const newGrid = this.getNewGridWithWallToggled(
+        this.state.nodes,
+        row,
+        col
+      );
+      this.setState({ nodes: newGrid, isMousePressed: true });
+    }
   };
 
   // ALGORITHM START
+
+  // animate each node in the order they were visited during the
+  // algorithm search
   animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
-    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
-      if (i === visitedNodesInOrder.length) {
+    for (let i = 1; i <= visitedNodesInOrder.length - 1; i++) {
+      if (i === visitedNodesInOrder.length - 1) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
         }, 12 * i);
@@ -142,27 +233,29 @@ export default class Grid extends React.Component {
         const node = visitedNodesInOrder[i];
         document.getElementById(`node-${node.row}-${node.col}`).className =
           "node node-visited";
-      }, 12 * i);
+      }, 10 * i);
     }
   }
 
+  // Animate path from from start to finish node
   animatePath(nodesInShortestPathOrder) {
-    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
+    for (let i = 1; i < nodesInShortestPathOrder.length - 1; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
         document.getElementById(`node-${node.row}-${node.col}`).className =
           "node node-shortest-path";
-      }, 40 * i);
+      }, 30 * i);
     }
   }
 
-  visualizeAlgorithm = (algorithmFunc) => {
+  // perform the algorithm, then animate the search process and final path
+  visualizeAlgorithm = algorithmFunc => {
     const {
       startNodeRow,
       startNodeCol,
       finishNodeRow,
       finishNodeCol,
-      nodes,
+      nodes
     } = this.state;
 
     const startNode = nodes[startNodeRow][startNodeCol];
@@ -189,11 +282,10 @@ export default class Grid extends React.Component {
     return this.state.nodes.map((row, rowIndex) => {
       return (
         <div className="row" key={rowIndex}>
-          {row.map((node) => {
+          {row.map(node => {
             const { row, col, isWall } = node;
-
-            let isStart = this.isStartNode(row, col);
-            let isFinish = this.isFinishNode(row, col);
+            const isStart = this.isStartNode(row, col);
+            const isFinish = this.isFinishNode(row, col);
 
             return (
               <Node
@@ -206,6 +298,7 @@ export default class Grid extends React.Component {
                 handleMouseDown={this.handleMouseDown}
                 handleMouseUp={this.handleMouseUp}
                 handleMouseEnter={this.handleMouseEnter}
+                handleMouseLeave={this.handleMouseLeave}
               />
             );
           })}
@@ -230,3 +323,5 @@ export default class Grid extends React.Component {
     );
   }
 }
+
+export default Grid;
