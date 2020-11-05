@@ -21,6 +21,60 @@ export function dijkstra(grid, startNode, finishNode) {
   }
 }
 
+export function BFS(grid, startNode, finishNode) {
+  const visitedNodesInOrder = [];
+  let queue = [];
+
+  startNode.distance = 0;
+  queue.push(startNode);
+  visitedNodesInOrder.push(startNode);
+
+  while (queue.length > 0) {
+    let currentNode = queue.shift();
+
+    if (currentNode.isVisited) continue;
+
+    if (currentNode === finishNode) return visitedNodesInOrder;
+    currentNode.isVisited = true;
+    visitedNodesInOrder.push(currentNode);
+
+    const unvisitedNeighbors = getUnvisitedNeighbors(currentNode, grid);
+
+    for (let i = 0; i < unvisitedNeighbors.length; i++) {
+      unvisitedNeighbors[i].previousNode = currentNode;
+      unvisitedNeighbors[i].distance = currentNode.distance + 1;
+      queue.push(unvisitedNeighbors[i]);
+    }
+  }
+}
+
+export function DFS(grid, startNode, finishNode) {
+  const visitedNodesInOrder = [];
+  let queue = [];
+
+  startNode.distance = 0;
+  queue.push(startNode);
+  visitedNodesInOrder.push(startNode);
+
+  while (queue.length > 0) {
+    let currentNode = queue.pop();
+
+    if (currentNode.isVisited) continue;
+
+    if (currentNode === finishNode) return visitedNodesInOrder;
+    currentNode.isVisited = true;
+    visitedNodesInOrder.push(currentNode);
+
+    const unvisitedNeighbors = getUnvisitedNeighbors(currentNode, grid);
+
+    for (let i = 0; i < unvisitedNeighbors.length; i++) {
+      unvisitedNeighbors[i].previousNode = currentNode;
+      unvisitedNeighbors[i].distance = currentNode.distance + 1;
+      queue.push(unvisitedNeighbors[i]);
+    }
+  }
+}
+
 function sortNodesByDistance(unvisitedNodes) {
   //TODO: use a heap instead
   unvisitedNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);

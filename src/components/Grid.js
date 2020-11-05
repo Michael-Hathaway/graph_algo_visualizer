@@ -1,7 +1,12 @@
 import React from "react";
 import Node from "./Node";
 import GridSettingsBar from "./GridSettingsBar";
-import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/djikstra";
+import {
+  dijkstra,
+  BFS,
+  DFS,
+  getNodesInShortestPathOrder,
+} from "../algorithms/searchAlgorithms";
 import "../style/grid.css";
 
 const GRID_ROWS = 17;
@@ -37,6 +42,7 @@ export default class Grid extends React.Component {
       isFinish: isFinish,
       isWall: false,
       distance: Infinity,
+      isVisited: false,
       previousNode: null,
     };
   };
@@ -137,11 +143,11 @@ export default class Grid extends React.Component {
   };
 
   // ALGORITHM START
-  animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+  animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
-          this.animateShortestPath(nodesInShortestPathOrder);
+          this.animatePath(nodesInShortestPathOrder);
         }, 10 * i);
         return;
       }
@@ -153,7 +159,7 @@ export default class Grid extends React.Component {
     }
   }
 
-  animateShortestPath(nodesInShortestPathOrder) {
+  animatePath(nodesInShortestPathOrder) {
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
@@ -176,10 +182,52 @@ export default class Grid extends React.Component {
     const finishNode = nodes[finishNodeRow][finishNodeCol];
     const visitedNodesInOrder = dijkstra(nodes, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
+    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
   };
 
+  visualizeBFS = () => {
+    const {
+      startNodeRow,
+      startNodeCol,
+      finishNodeRow,
+      finishNodeCol,
+      nodes,
+    } = this.state;
+
+    const startNode = nodes[startNodeRow][startNodeCol];
+    const finishNode = nodes[finishNodeRow][finishNodeCol];
+    const visitedNodesInOrder = BFS(nodes, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
+  };
+
+  visualizeDFS = () => {
+    const {
+      startNodeRow,
+      startNodeCol,
+      finishNodeRow,
+      finishNodeCol,
+      nodes,
+    } = this.state;
+
+    const startNode = nodes[startNodeRow][startNodeCol];
+    const finishNode = nodes[finishNodeRow][finishNodeCol];
+    const visitedNodesInOrder = DFS(nodes, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
+  };
   // ALGORITHM END
+
+  handleStartButtonClick = () => {
+    const { value } = this.props.selectedAlgorithm;
+    if (value === "dijkstra") {
+      this.visualizeDijkstra();
+    } else if (value === "bfs") {
+      this.visualizeBFS();
+    } else if (value === "dfs") {
+      this.visualizeDFS();
+    }
+  };
 
   renderGrid() {
     // render the nodes in rows
@@ -224,7 +272,7 @@ export default class Grid extends React.Component {
           handleSetFinishNodeClick={this.handleSetFinishNodeClick}
           handleSetWallButtonClick={this.handleSetWallButtonClick}
           handleResetGridButtonClick={this.resetGrid}
-          handleStartButtonClick={this.visualizeDijkstra}
+          handleStartButtonClick={this.handleStartButtonClick}
         />
         <div className="grid-wrapper">{this.renderGrid()}</div>
       </div>

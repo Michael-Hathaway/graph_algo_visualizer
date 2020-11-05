@@ -1,0 +1,26 @@
+.algorithm-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+  font-size: 1.6rem;
+}
+
+.menu-item {
+  margin: 0 30px;
+  padding: 10px;
+  border: 1px solid #fff;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+.menu-item:hover {
+  color: #2484f3;
+  background-color: #fff;
+  border-color: #2484f3;
+}
+
+.menu-item.active {
+  background-color: #2ecc71;
+}
