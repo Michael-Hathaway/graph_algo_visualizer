@@ -2,4 +2,22 @@
   background-color: #303247;
   color: #fff;
   padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav a {
+  padding: 10px;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 2.5px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.nav a:hover {
+  background-color: #fff;
+  color: #303247;
+  border-color: #303247;
 }

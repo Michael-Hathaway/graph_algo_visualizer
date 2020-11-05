@@ -11,17 +11,17 @@
   opacity: 0.7;
 }
 
-.start {
+.node.start {
   background-color: #2ecc71;
 }
 
-.finish {
+.node.finish {
   background-color: #e74c3c;
 }
 
-.wall {
+.node.wall {
   background-color: #000;
-  opacity: 0.4;
+  opacity: 0.75;
 }
 
 .node-visited {
