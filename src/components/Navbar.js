@@ -6,7 +6,12 @@ const Navbar = () => {
   return (
     <div className="nav">
       <div className="title">
-        <h2>Algo Visualizer</h2>
+        <h2>Dijktra's Algorithm Visualizer</h2>
+      </div>
+      <div className="source-code">
+        <a href="https://github.com/Michael-Hathaway/graph_algo_visualizer">
+          View Source Code
+        </a>
       </div>
     </div>
   );
