@@ -21,7 +21,7 @@ export function dijkstra(grid, startNode, finishNode) {
   }
 }
 
-export function BFS(grid, startNode, finishNode) {
+export function breadthFirstSearch(grid, startNode, finishNode) {
   const visitedNodesInOrder = [];
   let queue = [];
 
@@ -49,7 +49,7 @@ export function BFS(grid, startNode, finishNode) {
   }
 }
 
-export function DFS(grid, startNode, finishNode) {
+export function depthFirstSearch(grid, startNode, finishNode) {
   const visitedNodesInOrder = [];
   let queue = [];
 

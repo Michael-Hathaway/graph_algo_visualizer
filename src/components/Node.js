@@ -6,7 +6,6 @@ const Node = (props) => {
   const {
     row,
     col,
-    handleNodeClick,
     handleMouseDown,
     handleMouseEnter,
     handleMouseUp,
@@ -23,11 +22,8 @@ const Node = (props) => {
     <div
       id={`node-${row}-${col}`}
       className={`${calculatedClassName}`}
-      onClick={() => {
-        handleNodeClick(row, col);
-      }}
       onMouseDown={() => handleMouseDown(row, col)}
-      onMouseUp={() => handleMouseUp()}
+      onMouseUp={() => handleMouseUp(row, col)}
       onMouseEnter={() => handleMouseEnter(row, col)}
     ></div>
   );

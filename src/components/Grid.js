@@ -3,24 +3,24 @@ import Node from "./Node";
 import GridSettingsBar from "./GridSettingsBar";
 import {
   dijkstra,
-  BFS,
-  DFS,
+  breadthFirstSearch,
+  depthFirstSearch,
   getNodesInShortestPathOrder,
 } from "../algorithms/searchAlgorithms";
 import "../style/grid.css";
 
-const GRID_ROWS = 17;
-const GRID_COLS = 35;
+const GRID_ROWS = 20;
+const GRID_COLS = 40;
 
 const INITIAL_STATE = {
   isUserSelectingStartNode: false,
   isUserSelectingFinishNode: false,
   isUserAddingWalls: false,
   isMousePressed: false,
-  startNodeRow: 0,
-  startNodeCol: 0,
-  finishNodeRow: 8,
-  finishNodeCol: 25,
+  startNodeRow: 9,
+  startNodeCol: 5,
+  finishNodeRow: 9,
+  finishNodeCol: 34,
   nodes: [],
 };
 
@@ -96,68 +96,37 @@ export default class Grid extends React.Component {
     return newGrid;
   };
 
+  getNewGridWithStartNodeToggled = (grid, row, col) => {
+    const newGrid = grid.slice();
+    const node = newGrid[row][col];
+    const newNode = {
+      ...node,
+      isStart: true,
+    };
+    newGrid[row][col] = newNode;
+    return newGrid;
+  };
+
   componentDidMount() {
     // when component mounts create rows and cols
     const nodes = this.createInitialGrid(this.state);
     this.setState({ nodes });
   }
 
-  handleSetStartNodeClick = () => {
-    this.setState({
-      isUserSelectingStartNode: !this.state.isUserSelectingStartNode,
-      isUserSelectingFinishNode: false,
-      isUserAddingWalls: false,
-    });
-  };
-
-  handleSetFinishNodeClick = () => {
-    this.setState({
-      isUserSelectingStartNode: false,
-      isUserSelectingFinishNode: !this.state.isUserSelectingFinishNode,
-      isUserAddingWalls: false,
-    });
-  };
-
-  handleSetWallButtonClick = () => {
-    this.setState({
-      isUserSelectingStartNode: false,
-      isUserSelectingFinishNode: false,
-      isUserAddingWalls: !this.state.isUserAddingWalls,
-    });
-  };
-
-  handleMouseUp = () => {
+  handleMouseUp = (row, col) => {
     this.setState({ isMousePressed: false });
   };
 
   handleMouseEnter = (row, col) => {
     if (!this.state.isMousePressed) return;
-    if (!this.state.isUserAddingWalls) return;
 
     const newGrid = this.getNewGridWithWallToggled(this.state.nodes, row, col);
     this.setState({ nodes: newGrid });
   };
 
   handleMouseDown = (row, col) => {
-    if (!this.state.isUserAddingWalls) return;
     const newGrid = this.getNewGridWithWallToggled(this.state.nodes, row, col);
     this.setState({ nodes: newGrid, isMousePressed: true });
-  };
-
-  handleNodeClick = (row, col) => {
-    if (this.state.isUserAddingWalls) return;
-
-    if (this.state.isUserSelectingStartNode) {
-      this.setState({
-        startNodeRow: row,
-        startNodeCol: col,
-      });
-    } else if (this.state.isUserSelectingFinishNode) {
-      this.setState({
-        finishNodeRow: row,
-        finishNodeCol: col,
-      });
-    }
   };
 
   // ALGORITHM START
@@ -166,14 +135,14 @@ export default class Grid extends React.Component {
       if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
-        }, 10 * i);
+        }, 12 * i);
         return;
       }
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
         document.getElementById(`node-${node.row}-${node.col}`).className =
           "node node-visited";
-      }, 10 * i);
+      }, 12 * i);
     }
   }
 
@@ -183,11 +152,11 @@ export default class Grid extends React.Component {
         const node = nodesInShortestPathOrder[i];
         document.getElementById(`node-${node.row}-${node.col}`).className =
           "node node-shortest-path";
-      }, 50 * i);
+      }, 40 * i);
     }
   }
 
-  visualizeDijkstra = () => {
+  visualizeAlgorithm = (algorithmFunc) => {
     const {
       startNodeRow,
       startNodeCol,
@@ -198,39 +167,7 @@ export default class Grid extends React.Component {
 
     const startNode = nodes[startNodeRow][startNodeCol];
     const finishNode = nodes[finishNodeRow][finishNodeCol];
-    const visitedNodesInOrder = dijkstra(nodes, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
-  };
-
-  visualizeBFS = () => {
-    const {
-      startNodeRow,
-      startNodeCol,
-      finishNodeRow,
-      finishNodeCol,
-      nodes,
-    } = this.state;
-
-    const startNode = nodes[startNodeRow][startNodeCol];
-    const finishNode = nodes[finishNodeRow][finishNodeCol];
-    const visitedNodesInOrder = BFS(nodes, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
-  };
-
-  visualizeDFS = () => {
-    const {
-      startNodeRow,
-      startNodeCol,
-      finishNodeRow,
-      finishNodeCol,
-      nodes,
-    } = this.state;
-
-    const startNode = nodes[startNodeRow][startNodeCol];
-    const finishNode = nodes[finishNodeRow][finishNodeCol];
-    const visitedNodesInOrder = DFS(nodes, startNode, finishNode);
+    const visitedNodesInOrder = algorithmFunc(nodes, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
   };
@@ -239,11 +176,11 @@ export default class Grid extends React.Component {
   handleStartButtonClick = () => {
     const { value } = this.props.selectedAlgorithm;
     if (value === "dijkstra") {
-      this.visualizeDijkstra();
+      this.visualizeAlgorithm(dijkstra);
     } else if (value === "bfs") {
-      this.visualizeBFS();
+      this.visualizeAlgorithm(breadthFirstSearch);
     } else if (value === "dfs") {
-      this.visualizeDFS();
+      this.visualizeAlgorithm(depthFirstSearch);
     }
   };
 
@@ -252,15 +189,11 @@ export default class Grid extends React.Component {
     return this.state.nodes.map((row, rowIndex) => {
       return (
         <div className="row" key={rowIndex}>
-          {row.map((node, nodeIndex) => {
+          {row.map((node) => {
             const { row, col, isWall } = node;
 
-            let isStart =
-              row === this.state.startNodeRow &&
-              col === this.state.startNodeCol;
-            let isFinish =
-              row === this.state.finishNodeRow &&
-              col === this.state.finishNodeCol;
+            let isStart = this.isStartNode(row, col);
+            let isFinish = this.isFinishNode(row, col);
 
             return (
               <Node
@@ -270,7 +203,6 @@ export default class Grid extends React.Component {
                 isStart={isStart}
                 isFinish={isFinish}
                 isWall={isWall}
-                handleNodeClick={this.handleNodeClick}
                 handleMouseDown={this.handleMouseDown}
                 handleMouseUp={this.handleMouseUp}
                 handleMouseEnter={this.handleMouseEnter}
@@ -288,11 +220,12 @@ export default class Grid extends React.Component {
         <GridSettingsBar
           handleSetStartNodeClick={this.handleSetStartNodeClick}
           handleSetFinishNodeClick={this.handleSetFinishNodeClick}
-          handleSetWallButtonClick={this.handleSetWallButtonClick}
           handleResetGridButtonClick={this.resetGrid}
           handleStartButtonClick={this.handleStartButtonClick}
         />
-        <div className="grid-wrapper">{this.renderGrid()}</div>
+        <div className="grid-wrapper">
+          <div className="grid">{this.renderGrid()}</div>
+        </div>
       </div>
     );
   }

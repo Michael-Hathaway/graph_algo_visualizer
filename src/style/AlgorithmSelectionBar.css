@@ -2,25 +2,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
   color: #fff;
   font-size: 1.6rem;
 }
 
 .menu-item {
+  position: relative;
   margin: 0 30px;
   padding: 10px;
-  border: 1px solid #fff;
-  border-radius: 5px;
   transition: 0.3s;
 }
 
-.menu-item:hover {
-  color: #2484f3;
+.menu-item::before {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
   background-color: #fff;
-  border-color: #2484f3;
+  transition: 0.25s ease-in-out;
 }
 
-.menu-item.active {
-  background-color: #2ecc71;
+.menu-item:hover::before {
+  width: 100%;
+}
+
+.menu-item.active::before {
+  width: 100%;
 }
