@@ -17,6 +17,7 @@ const FINISH_NODE_ROW = 9;
 const FINISH_NODE_COL = 34;
 
 const INITIAL_STATE = {
+  isSimulationComplete: false,
   isUserMovingStartNode: false,
   isUserMovingFinishNode: false,
   isMousePressed: false,
@@ -73,19 +74,29 @@ class Grid extends React.Component {
   };
 
   resetGrid = () => {
-    for (let i = 0; i < GRID_ROWS; i++) {
-      for (let j = 0; j < GRID_COLS; j++) {
-        // remove classnames added during animation
-        const classname = `node ${this.isStartNode(i, j) ? " start" : ""}${
-          this.isFinishNode(i, j) ? " finish" : ""
-        }`;
-        document.getElementById(`node-${i}-${j}`).className = classname;
-      }
-    }
-
+    this.clearSimulationResult();
     // reset grid component
     const nodes = this.createInitialGrid();
     this.setState({ ...INITIAL_STATE, nodes });
+  };
+
+  clearSimulationResult = () => {
+    const newGrid = this.state.nodes;
+
+    for (let i = 0; i < GRID_ROWS; i++) {
+      for (let j = 0; j < GRID_COLS; j++) {
+        // remove classnames added during animation
+        const node = document.getElementById(`node-${i}-${j}`);
+        node.classList.remove("node-visited");
+        node.classList.remove("node-shortest-path");
+
+        newGrid[i][j].isVisited = false;
+        newGrid[i][j].previousNode = null;
+        newGrid[i][j].distance = Infinity;
+      }
+    }
+
+    this.setState({ isSimulationComplete: false, nodes: newGrid });
   };
 
   getNewGridWithWallToggled = (grid, row, col) => {
@@ -133,6 +144,7 @@ class Grid extends React.Component {
       isUserMovingStartNode: false,
       isUserMovingFinishNode: false
     });
+    this.forceUpdate();
   };
 
   handleMouseEnter = (row, col) => {
@@ -222,8 +234,8 @@ class Grid extends React.Component {
   // animate each node in the order they were visited during the
   // algorithm search
   animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
-    for (let i = 1; i <= visitedNodesInOrder.length - 1; i++) {
-      if (i === visitedNodesInOrder.length - 1) {
+    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
+      if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
         }, 12 * i);
@@ -231,25 +243,31 @@ class Grid extends React.Component {
       }
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          "node node-visited";
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("node-visited");
       }, 10 * i);
     }
   }
 
   // Animate path from from start to finish node
   animatePath(nodesInShortestPathOrder) {
-    for (let i = 1; i < nodesInShortestPathOrder.length - 1; i++) {
+    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          "node node-shortest-path";
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("node-shortest-path");
       }, 30 * i);
     }
   }
 
   // perform the algorithm, then animate the search process and final path
   visualizeAlgorithm = algorithmFunc => {
+    if (this.state.isSimulationComplete) {
+      this.clearSimulationResult();
+    }
+
     const {
       startNodeRow,
       startNodeCol,
@@ -263,6 +281,7 @@ class Grid extends React.Component {
     const visitedNodesInOrder = algorithmFunc(nodes, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
+    this.setState({ isSimulationComplete: true });
   };
   // ALGORITHM END
 
@@ -315,6 +334,7 @@ class Grid extends React.Component {
           handleSetFinishNodeClick={this.handleSetFinishNodeClick}
           handleResetGridButtonClick={this.resetGrid}
           handleStartButtonClick={this.handleStartButtonClick}
+          handleClearSimulationButtonClick={this.clearSimulationResult}
         />
         <div className="grid-wrapper">
           <div className="grid">{this.renderGrid()}</div>

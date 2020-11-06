@@ -11,10 +11,6 @@
   opacity: 0.7;
 }
 
-.node.start {
-  background-color: #2ecc71;
-}
-
 .node.finish {
   background-color: #e74c3c;
 }
@@ -87,4 +83,8 @@
     transform: scale(1);
     background-color: rgb(255, 254, 106);
   }
+}
+
+.node.start {
+  background-color: #2ecc71;
 }
