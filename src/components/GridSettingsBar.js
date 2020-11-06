@@ -28,7 +28,14 @@ const GridSettingsBar = props => {
           Reset Grid
         </button>
       </div>
-
+      <div className="item reset-grid">
+        <button
+          className="reset-grid-button"
+          onClick={() => props.runRecursiveDiv()}
+        >
+          recursiveDivision
+        </button>
+      </div>
       <div className="item key">
         <div className="key-item">
           <div className="node start"></div>

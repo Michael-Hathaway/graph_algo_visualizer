@@ -7,6 +7,7 @@ import {
   depthFirstSearch,
   getNodesInShortestPathOrder
 } from "../algorithms/searchAlgorithms";
+import { recursiveDivision } from "../algorithms/recursiveDivision";
 import "../style/grid.css";
 
 const GRID_ROWS = 20;
@@ -283,6 +284,12 @@ class Grid extends React.Component {
     this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
     this.setState({ isSimulationComplete: true });
   };
+
+  visualizeRecursiveDivision = () => {
+    const { nodes } = this.state;
+
+    recursiveDivision(nodes, 0, 0, GRID_COLS, GRID_ROWS);
+  };
   // ALGORITHM END
 
   handleStartButtonClick = () => {
@@ -335,6 +342,7 @@ class Grid extends React.Component {
           handleResetGridButtonClick={this.resetGrid}
           handleStartButtonClick={this.handleStartButtonClick}
           handleClearSimulationButtonClick={this.clearSimulationResult}
+          runRecursiveDiv={this.visualizeRecursiveDivision}
         />
         <div className="grid-wrapper">
           <div className="grid">{this.renderGrid()}</div>
