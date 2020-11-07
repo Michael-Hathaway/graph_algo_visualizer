@@ -2,7 +2,7 @@ import React from "react";
 
 import "../style/node.css";
 
-const Node = props => {
+const Node = (props) => {
   const {
     row,
     col,
@@ -12,12 +12,18 @@ const Node = props => {
     handleMouseUp,
     isStart,
     isFinish,
-    isWall
+    isWall,
   } = props;
 
   const calculatedClassName =
     "node" +
-    (isStart ? " start" : isFinish ? " finish" : isWall ? " wall" : "");
+    (isStart
+      ? " node-start"
+      : isFinish
+      ? " node-finish"
+      : isWall
+      ? " wall"
+      : "");
 
   return (
     <div

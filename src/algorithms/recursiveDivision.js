@@ -1,45 +1,100 @@
-export const recursiveDivision = (grid, x, y, width, height) => {
-  if (width < 2 || height < 2) return;
+export const recursiveDivision = (
+  grid,
+  rowStart,
+  colStart,
+  rowEnd,
+  colEnd,
+  wallsInOrder
+) => {
+  const height = rowEnd - rowStart;
+  const width = colEnd - colStart;
+  if (width < 3 || height < 3) return;
 
   const orientation = getWallOrientation(width, height);
 
   if (orientation === "R") {
     // add new row wall
-    createNewHorizontalWall(grid, x, y, width, height);
+    createNewHorizontalWall(
+      grid,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      wallsInOrder
+    );
   } else {
     // add new column wall
-    createNewVerticalWall(grid, x, y, width, height);
+    createNewVerticalWall(
+      grid,
+      rowStart,
+      colStart,
+      rowEnd,
+      colEnd,
+      wallsInOrder
+    );
   }
 };
 
-const createNewHorizontalWall = (grid, x, y, width, height) => {
-  const rowWallIndex = getRandomNumber(y + 1, y + height - 1);
-  const gapPos = getRandomNumber(x + 1, x + width - 1);
+const createNewHorizontalWall = (
+  grid,
+  rowStart,
+  colStart,
+  rowEnd,
+  colEnd,
+  wallsInOrder
+) => {
+  const rowWallIndex = rowStart + Math.round((rowEnd - rowStart + 1) / 2);
+  const gapPos = getRandomNumber(colStart, colEnd - 1);
 
-  for (let i = x + 1; i < x + width - 1; i++) {
-    if (i === gapPos) continue;
+  for (let i = colStart; i < colEnd; i++) {
+    const node = grid[rowWallIndex][i];
 
-    const currentNode = document.getElementById(`node-${rowWallIndex}-${i}`);
-    currentNode.classList.add("wall");
+    node.isGap = i === gapPos;
+    if (node.isGap || node.isStart || node.isFinish) continue;
+
+    wallsInOrder.push(node);
   }
 
-  recursiveDivision(grid, x, y, width, rowWallIndex - y);
-  recursiveDivision(grid, x, rowWallIndex, width, y + height - rowWallIndex);
+  recursiveDivision(
+    grid,
+    rowStart,
+    colStart,
+    rowWallIndex - 1,
+    colEnd,
+    wallsInOrder
+  );
+  recursiveDivision(grid, rowWallIndex, colStart, rowEnd, colEnd, wallsInOrder);
 };
 
-const createNewVerticalWall = (grid, x, y, width, height) => {
-  const colWallIndex = getRandomNumber(x + 1, x + width - 1);
-  const gapPos = getRandomNumber(y + 1, y + height - 1);
+const createNewVerticalWall = (
+  grid,
+  rowStart,
+  colStart,
+  rowEnd,
+  colEnd,
+  wallsInOrder
+) => {
+  const colWallIndex = colStart + Math.round((colEnd - colStart + 1) / 2);
+  const gapPos = getRandomNumber(rowStart, rowEnd - 1);
 
-  for (let i = y + 1; i < y + height - 1; i++) {
-    if (i === gapPos) continue;
+  for (let i = rowStart; i < rowEnd; i++) {
+    const node = grid[i][colWallIndex];
 
-    const currentNode = document.getElementById(`node-${i}-${colWallIndex}`);
-    currentNode.classList.add("wall");
+    node.isGap = i === gapPos;
+    if (node.isGap || node.isStart || node.isFinish) continue;
+
+    wallsInOrder.push(node);
   }
 
-  recursiveDivision(grid, x, y, colWallIndex - x, height);
-  recursiveDivision(grid, colWallIndex, y, x + width - colWallIndex, height);
+  recursiveDivision(
+    grid,
+    rowStart,
+    colStart,
+    rowEnd,
+    colWallIndex - 1,
+    wallsInOrder
+  );
+  recursiveDivision(grid, rowStart, colWallIndex, rowEnd, colEnd, wallsInOrder);
 };
 
 const getWallOrientation = (rowWidth, colHeight) => {

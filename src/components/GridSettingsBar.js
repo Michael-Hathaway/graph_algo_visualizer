@@ -1,7 +1,7 @@
 import React from "react";
 import "../style/GridSettingsBar.css";
 
-const GridSettingsBar = props => {
+const GridSettingsBar = (props) => {
   return (
     <div className="settings">
       <div className="item start-sim">
@@ -28,22 +28,22 @@ const GridSettingsBar = props => {
           Reset Grid
         </button>
       </div>
-      <div className="item reset-grid">
+      <div className="item maze">
         <button
-          className="reset-grid-button"
-          onClick={() => props.runRecursiveDiv()}
+          className="generate-maze-button"
+          onClick={() => props.handleMazeButtonClick()}
         >
-          recursiveDivision
+          Generate Maze
         </button>
       </div>
       <div className="item key">
         <div className="key-item">
-          <div className="node start"></div>
-          <p>Start Node</p>
+          <div className="node node-start"></div>
+          <p>Start</p>
         </div>
         <div className="key-item">
-          <div className="node finish"></div>
-          <p>Finish Node</p>
+          <div className="node node-finish"></div>
+          <p>Finish</p>
         </div>
         <div className="key-item">
           <p>

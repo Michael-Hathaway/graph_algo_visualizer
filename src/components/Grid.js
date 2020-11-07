@@ -5,7 +5,7 @@ import {
   dijkstra,
   breadthFirstSearch,
   depthFirstSearch,
-  getNodesInShortestPathOrder
+  getNodesInShortestPathOrder,
 } from "../algorithms/searchAlgorithms";
 import { recursiveDivision } from "../algorithms/recursiveDivision";
 import "../style/grid.css";
@@ -19,6 +19,7 @@ const FINISH_NODE_COL = 34;
 
 const INITIAL_STATE = {
   isSimulationComplete: false,
+  isRecursiveDivComplete: false,
   isUserMovingStartNode: false,
   isUserMovingFinishNode: false,
   isMousePressed: false,
@@ -26,7 +27,7 @@ const INITIAL_STATE = {
   startNodeCol: START_NODE_COL,
   finishNodeRow: FINISH_NODE_ROW,
   finishNodeCol: FINISH_NODE_COL,
-  nodes: []
+  nodes: [],
 };
 
 class Grid extends React.Component {
@@ -50,9 +51,10 @@ class Grid extends React.Component {
       isStart: false,
       isFinish: false,
       isWall: false,
+      isGap: false,
       distance: Infinity,
       isVisited: false,
-      previousNode: null
+      previousNode: null,
     };
   };
 
@@ -74,15 +76,36 @@ class Grid extends React.Component {
     return nodes;
   };
 
-  resetGrid = () => {
-    this.clearSimulationResult();
-    // reset grid component
-    const nodes = this.createInitialGrid();
-    this.setState({ ...INITIAL_STATE, nodes });
+  resetStartAndFinishNodes = () => {
+    this.setState({
+      startNodeRow: START_NODE_ROW,
+      startNodeCol: START_NODE_COL,
+      finishNodeRow: FINISH_NODE_ROW,
+      finishNodeCol: FINISH_NODE_COL,
+    });
   };
 
-  clearSimulationResult = () => {
-    const newGrid = this.state.nodes;
+  // reset isWall state for all nodes
+  // reset DOM stylings for wall nodes
+  resetWallsInGrid = () => {
+    const grid = this.state.nodes.slice();
+
+    for (let i = 0; i < GRID_ROWS; i++) {
+      for (let j = 0; j < GRID_COLS; j++) {
+        const node = document.getElementById(`node-${i}-${j}`);
+        node.classList.remove("node-wall");
+        grid[i][j].isWall = false;
+        grid[i][j].isGap = false;
+      }
+    }
+
+    this.setState({ nodes: grid });
+  };
+
+  // reset state used by nodes for performing search algorithm
+  // reset DOM stylings for searched nodes
+  clearSimulationResults = () => {
+    const grid = this.state.nodes.slice();
 
     for (let i = 0; i < GRID_ROWS; i++) {
       for (let j = 0; j < GRID_COLS; j++) {
@@ -91,13 +114,19 @@ class Grid extends React.Component {
         node.classList.remove("node-visited");
         node.classList.remove("node-shortest-path");
 
-        newGrid[i][j].isVisited = false;
-        newGrid[i][j].previousNode = null;
-        newGrid[i][j].distance = Infinity;
+        grid[i][j].isVisited = false;
+        grid[i][j].previousNode = null;
+        grid[i][j].distance = Infinity;
       }
     }
 
-    this.setState({ isSimulationComplete: false, nodes: newGrid });
+    this.setState({ nodes: grid });
+  };
+
+  resetGrid = () => {
+    this.resetStartAndFinishNodes();
+    this.resetWallsInGrid();
+    this.clearSimulationResults();
   };
 
   getNewGridWithWallToggled = (grid, row, col) => {
@@ -105,7 +134,7 @@ class Grid extends React.Component {
     const node = newGrid[row][col];
     const newNode = {
       ...node,
-      isWall: !node.isWall
+      isWall: !node.isWall,
     };
     newGrid[row][col] = newNode;
     return newGrid;
@@ -116,7 +145,7 @@ class Grid extends React.Component {
     const node = newGrid[row][col];
     const newNode = {
       ...node,
-      isStart: !node.isStart
+      isStart: !node.isStart,
     };
     newGrid[row][col] = newNode;
     return newGrid;
@@ -127,7 +156,7 @@ class Grid extends React.Component {
     const node = newGrid[row][col];
     const newNode = {
       ...node,
-      isStart: !node.isStart
+      isStart: !node.isStart,
     };
     newGrid[row][col] = newNode;
     return newGrid;
@@ -143,7 +172,7 @@ class Grid extends React.Component {
     this.setState({
       isMousePressed: false,
       isUserMovingStartNode: false,
-      isUserMovingFinishNode: false
+      isUserMovingFinishNode: false,
     });
     this.forceUpdate();
   };
@@ -206,7 +235,7 @@ class Grid extends React.Component {
         isUserMovingStartNode: true,
         isUserMovingFinishNode: false,
         isMousePressed: true,
-        nodes: newGrid
+        nodes: newGrid,
       });
     } else if (this.isFinishNode(row, col)) {
       const newGrid = this.getNewGridWithFinishNodeToggled(
@@ -218,7 +247,7 @@ class Grid extends React.Component {
         isUserMovingStartNode: false,
         isUserMovingFinishNode: true,
         isMousePressed: true,
-        nodes: newGrid
+        nodes: newGrid,
       });
     } else {
       const newGrid = this.getNewGridWithWallToggled(
@@ -264,17 +293,15 @@ class Grid extends React.Component {
   }
 
   // perform the algorithm, then animate the search process and final path
-  visualizeAlgorithm = algorithmFunc => {
-    if (this.state.isSimulationComplete) {
-      this.clearSimulationResult();
-    }
+  visualizeAlgorithm = (algorithmFunc) => {
+    this.clearSimulationResults();
 
     const {
       startNodeRow,
       startNodeCol,
       finishNodeRow,
       finishNodeCol,
-      nodes
+      nodes,
     } = this.state;
 
     const startNode = nodes[startNodeRow][startNodeCol];
@@ -282,13 +309,36 @@ class Grid extends React.Component {
     const visitedNodesInOrder = algorithmFunc(nodes, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
-    this.setState({ isSimulationComplete: true });
   };
 
-  visualizeRecursiveDivision = () => {
-    const { nodes } = this.state;
+  animateRecursiveDivision = (wallsInOrder) => {
+    for (let i = 0; i < wallsInOrder.length; i++) {
+      setTimeout(() => {
+        const node = wallsInOrder[i];
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("node-wall");
+      }, 30 * i);
+    }
+  };
 
-    recursiveDivision(nodes, 0, 0, GRID_COLS, GRID_ROWS);
+  updateStateOfNodesInWalls = (nodesInWall) => {
+    nodesInWall.forEach((node) => {
+      node.isWall = !node.isGap;
+    });
+  };
+
+  visualizeRecursiveDivision = async () => {
+    this.clearSimulationResults();
+    this.resetWallsInGrid();
+
+    //const copyOfNodes = this.state.nodes.slice();
+    const nodes = this.state.nodes.slice();
+    const wallsInOrder = [];
+
+    recursiveDivision(nodes, 0, 0, GRID_ROWS, GRID_COLS, wallsInOrder);
+    await this.animateRecursiveDivision(wallsInOrder);
+    this.updateStateOfNodesInWalls(wallsInOrder);
   };
   // ALGORITHM END
 
@@ -300,6 +350,8 @@ class Grid extends React.Component {
       this.visualizeAlgorithm(breadthFirstSearch);
     } else if (value === "dfs") {
       this.visualizeAlgorithm(depthFirstSearch);
+    } else if (value === "recursiveDiv") {
+      this.visualizeRecursiveDivision();
     }
   };
 
@@ -308,7 +360,7 @@ class Grid extends React.Component {
     return this.state.nodes.map((row, rowIndex) => {
       return (
         <div className="row" key={rowIndex}>
-          {row.map(node => {
+          {row.map((node) => {
             const { row, col, isWall } = node;
             const isStart = this.isStartNode(row, col);
             const isFinish = this.isFinishNode(row, col);
@@ -341,8 +393,8 @@ class Grid extends React.Component {
           handleSetFinishNodeClick={this.handleSetFinishNodeClick}
           handleResetGridButtonClick={this.resetGrid}
           handleStartButtonClick={this.handleStartButtonClick}
-          handleClearSimulationButtonClick={this.clearSimulationResult}
-          runRecursiveDiv={this.visualizeRecursiveDivision}
+          handleClearSimulationButtonClick={this.clearSimulationResults}
+          handleMazeButtonClick={this.visualizeRecursiveDivision}
         />
         <div className="grid-wrapper">
           <div className="grid">{this.renderGrid()}</div>
