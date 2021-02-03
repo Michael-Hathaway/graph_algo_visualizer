@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import "../style/node.css";
+import '../style/node.css';
 
 const Node = (props) => {
   const {
@@ -16,14 +16,14 @@ const Node = (props) => {
   } = props;
 
   const calculatedClassName =
-    "node" +
+    'node' +
     (isStart
-      ? " node-start"
+      ? ' node-start'
       : isFinish
-      ? " node-finish"
+      ? ' node-finish'
       : isWall
-      ? " wall"
-      : "");
+      ? ' node-wall'
+      : '');
 
   return (
     <div

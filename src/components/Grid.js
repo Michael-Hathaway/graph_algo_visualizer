@@ -1,14 +1,13 @@
-import React from "react";
-import Node from "./Node";
-import GridSettingsBar from "./GridSettingsBar";
+import React from 'react';
+import Node from './Node';
+import GridSettingsBar from './GridSettingsBar';
 import {
   dijkstra,
   breadthFirstSearch,
   depthFirstSearch,
   getNodesInShortestPathOrder,
-} from "../algorithms/searchAlgorithms";
-import { recursiveDivision } from "../algorithms/recursiveDivision";
-import "../style/grid.css";
+} from '../algorithms/searchAlgorithms';
+import '../style/grid.css';
 
 const GRID_ROWS = 20;
 const GRID_COLS = 40;
@@ -18,8 +17,7 @@ const FINISH_NODE_ROW = 9;
 const FINISH_NODE_COL = 34;
 
 const INITIAL_STATE = {
-  isSimulationComplete: false,
-  isRecursiveDivComplete: false,
+  isSimulationOccurring: false,
   isUserMovingStartNode: false,
   isUserMovingFinishNode: false,
   isMousePressed: false,
@@ -34,6 +32,12 @@ class Grid extends React.Component {
   constructor(props) {
     super(props);
     this.state = INITIAL_STATE;
+  }
+
+  componentDidMount() {
+    // when component mounts create rows and cols
+    const nodes = this.createInitialGrid(this.state);
+    this.setState({ nodes });
   }
 
   isStartNode = (row, col) => {
@@ -93,7 +97,7 @@ class Grid extends React.Component {
     for (let i = 0; i < GRID_ROWS; i++) {
       for (let j = 0; j < GRID_COLS; j++) {
         const node = document.getElementById(`node-${i}-${j}`);
-        node.classList.remove("node-wall");
+        node.classList.remove('node-wall');
         grid[i][j].isWall = false;
         grid[i][j].isGap = false;
       }
@@ -111,8 +115,8 @@ class Grid extends React.Component {
       for (let j = 0; j < GRID_COLS; j++) {
         // remove classnames added during animation
         const node = document.getElementById(`node-${i}-${j}`);
-        node.classList.remove("node-visited");
-        node.classList.remove("node-shortest-path");
+        node.classList.remove('node-visited');
+        node.classList.remove('node-shortest-path');
 
         grid[i][j].isVisited = false;
         grid[i][j].previousNode = null;
@@ -123,12 +127,14 @@ class Grid extends React.Component {
     this.setState({ nodes: grid });
   };
 
+  // completely reset the grid
   resetGrid = () => {
     this.resetStartAndFinishNodes();
     this.resetWallsInGrid();
     this.clearSimulationResults();
   };
 
+  // generate new grid with the the node at row, col toggled as a wall
   getNewGridWithWallToggled = (grid, row, col) => {
     const newGrid = grid.slice();
     const node = newGrid[row][col];
@@ -140,6 +146,7 @@ class Grid extends React.Component {
     return newGrid;
   };
 
+  // generate new grid with the the node at row, col set as start node
   getNewGridWithStartNodeToggled = (grid, row, col) => {
     const newGrid = grid.slice();
     const node = newGrid[row][col];
@@ -151,6 +158,7 @@ class Grid extends React.Component {
     return newGrid;
   };
 
+  // generate new grid with the the node at row, col set as End node
   getNewGridWithFinishNodeToggled = (grid, row, col) => {
     const newGrid = grid.slice();
     const node = newGrid[row][col];
@@ -161,12 +169,6 @@ class Grid extends React.Component {
     newGrid[row][col] = newNode;
     return newGrid;
   };
-
-  componentDidMount() {
-    // when component mounts create rows and cols
-    const nodes = this.createInitialGrid(this.state);
-    this.setState({ nodes });
-  }
 
   handleMouseUp = (row, col) => {
     this.setState({
@@ -264,8 +266,8 @@ class Grid extends React.Component {
   // animate each node in the order they were visited during the
   // algorithm search
   animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
-    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
-      if (i === visitedNodesInOrder.length) {
+    for (let i = 1; i < visitedNodesInOrder.length - 1; i++) {
+      if (i === visitedNodesInOrder.length - 2) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
         }, 12 * i);
@@ -275,7 +277,7 @@ class Grid extends React.Component {
         const node = visitedNodesInOrder[i];
         document
           .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-visited");
+          .classList.add('node-visited');
       }, 10 * i);
     }
   }
@@ -287,13 +289,13 @@ class Grid extends React.Component {
         const node = nodesInShortestPathOrder[i];
         document
           .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-shortest-path");
+          .classList.add('node-shortest-path');
       }, 30 * i);
     }
   }
 
-  // perform the algorithm, then animate the search process and final path
-  visualizeAlgorithm = (algorithmFunc) => {
+  // perform the search algorithm, then animate the search process and final path
+  visualizeAlgorithm = async (algorithmFunc) => {
     this.clearSimulationResults();
 
     const {
@@ -308,50 +310,19 @@ class Grid extends React.Component {
     const finishNode = nodes[finishNodeRow][finishNodeCol];
     const visitedNodesInOrder = algorithmFunc(nodes, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
+    await this.animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder);
   };
 
-  animateRecursiveDivision = (wallsInOrder) => {
-    for (let i = 0; i < wallsInOrder.length; i++) {
-      setTimeout(() => {
-        const node = wallsInOrder[i];
-        document
-          .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-wall");
-      }, 30 * i);
-    }
-  };
-
-  updateStateOfNodesInWalls = (nodesInWall) => {
-    nodesInWall.forEach((node) => {
-      node.isWall = !node.isGap;
-    });
-  };
-
-  visualizeRecursiveDivision = async () => {
-    this.clearSimulationResults();
-    this.resetWallsInGrid();
-
-    //const copyOfNodes = this.state.nodes.slice();
-    const nodes = this.state.nodes.slice();
-    const wallsInOrder = [];
-
-    recursiveDivision(nodes, 0, 0, GRID_ROWS, GRID_COLS, wallsInOrder);
-    await this.animateRecursiveDivision(wallsInOrder);
-    this.updateStateOfNodesInWalls(wallsInOrder);
-  };
   // ALGORITHM END
 
   handleStartButtonClick = () => {
     const { value } = this.props.selectedAlgorithm;
-    if (value === "dijkstra") {
+    if (value === 'dijkstra') {
       this.visualizeAlgorithm(dijkstra);
-    } else if (value === "bfs") {
+    } else if (value === 'bfs') {
       this.visualizeAlgorithm(breadthFirstSearch);
-    } else if (value === "dfs") {
+    } else if (value === 'dfs') {
       this.visualizeAlgorithm(depthFirstSearch);
-    } else if (value === "recursiveDiv") {
-      this.visualizeRecursiveDivision();
     }
   };
 
