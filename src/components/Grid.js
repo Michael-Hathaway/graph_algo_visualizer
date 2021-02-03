@@ -266,8 +266,8 @@ class Grid extends React.Component {
   // animate each node in the order they were visited during the
   // algorithm search
   animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
-    for (let i = 1; i < visitedNodesInOrder.length - 1; i++) {
-      if (i === visitedNodesInOrder.length - 2) {
+    for (let i = 1; i <= visitedNodesInOrder.length; i++) {
+      if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
         }, 12 * i);
