@@ -2,7 +2,7 @@ export function dijkstra(grid, startNode, finishNode) {
   const visitedNodesInOrder = [];
   startNode.distance = 0;
   const unvisitedNodes = getAllNodes(grid);
-  while (!!unvisitedNodes.length) {
+  while (unvisitedNodes.length) {
     sortNodesByDistance(unvisitedNodes);
     const closestNode = unvisitedNodes.shift();
     // If we encounter a wall, we skip it.
@@ -10,9 +10,11 @@ export function dijkstra(grid, startNode, finishNode) {
     // If the closest node is at a distance of infinity,
     // we must be trapped and should therefore stop.
     if (closestNode.distance === Infinity) return visitedNodesInOrder;
+    if (closestNode === finishNode) return visitedNodesInOrder;
+
     closestNode.isVisited = true;
     visitedNodesInOrder.push(closestNode);
-    if (closestNode === finishNode) return visitedNodesInOrder;
+
     updateUnvisitedNeighbors(closestNode, grid);
   }
 }
@@ -23,7 +25,6 @@ export function breadthFirstSearch(grid, startNode, finishNode) {
 
   startNode.distance = 0;
   queue.push(startNode);
-  visitedNodesInOrder.push(startNode);
 
   while (queue.length > 0) {
     let currentNode = queue.shift();
@@ -31,7 +32,10 @@ export function breadthFirstSearch(grid, startNode, finishNode) {
     if (currentNode.isWall) continue;
     if (currentNode.isVisited) continue;
 
-    if (currentNode === finishNode) return visitedNodesInOrder;
+    if (currentNode === finishNode) {
+      visitedNodesInOrder.push(currentNode);
+      return visitedNodesInOrder;
+    }
     currentNode.isVisited = true;
     visitedNodesInOrder.push(currentNode);
 
@@ -53,7 +57,6 @@ export function depthFirstSearch(grid, startNode, finishNode) {
 
   startNode.distance = 0;
   queue.push(startNode);
-  visitedNodesInOrder.push(startNode);
 
   while (queue.length > 0) {
     let currentNode = queue.pop();
@@ -61,7 +64,10 @@ export function depthFirstSearch(grid, startNode, finishNode) {
     if (currentNode.isWall) continue;
     if (currentNode.isVisited) continue;
 
-    if (currentNode === finishNode) return visitedNodesInOrder;
+    if (currentNode === finishNode) {
+      visitedNodesInOrder.push(currentNode);
+      return visitedNodesInOrder;
+    }
     currentNode.isVisited = true;
     visitedNodesInOrder.push(currentNode);
 

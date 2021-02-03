@@ -17,7 +17,7 @@ const FINISH_NODE_ROW = 9;
 const FINISH_NODE_COL = 34;
 
 const INITIAL_STATE = {
-  isSimulationOccurring: false,
+  isAnimating: false,
   isUserMovingStartNode: false,
   isUserMovingFinishNode: false,
   isMousePressed: false,
@@ -109,6 +109,8 @@ class Grid extends React.Component {
   // reset state used by nodes for performing search algorithm
   // reset DOM stylings for searched nodes
   clearSimulationResults = () => {
+    if (this.state.isAnimating) return;
+
     const grid = this.state.nodes.slice();
 
     for (let i = 0; i < GRID_ROWS; i++) {
@@ -129,6 +131,8 @@ class Grid extends React.Component {
 
   // completely reset the grid
   resetGrid = () => {
+    if (this.state.isAnimating) return;
+
     this.resetStartAndFinishNodes();
     this.resetWallsInGrid();
     this.clearSimulationResults();
@@ -171,6 +175,8 @@ class Grid extends React.Component {
   };
 
   handleMouseUp = (row, col) => {
+    if (this.state.isAnimating) return;
+
     this.setState({
       isMousePressed: false,
       isUserMovingStartNode: false,
@@ -180,6 +186,7 @@ class Grid extends React.Component {
   };
 
   handleMouseEnter = (row, col) => {
+    if (this.state.isAnimating) return;
     if (!this.state.isMousePressed) return;
 
     if (this.state.isUserMovingStartNode) {
@@ -207,6 +214,7 @@ class Grid extends React.Component {
   };
 
   handleMouseLeave = (row, col) => {
+    if (this.state.isAnimating) return;
     if (!this.state.isMousePressed) return;
 
     if (this.state.isUserMovingStartNode) {
@@ -227,6 +235,8 @@ class Grid extends React.Component {
   };
 
   handleMouseDown = (row, col) => {
+    if (this.state.isAnimating) return;
+
     if (this.isStartNode(row, col)) {
       const newGrid = this.getNewGridWithStartNodeToggled(
         this.state.nodes,
@@ -266,8 +276,10 @@ class Grid extends React.Component {
   // animate each node in the order they were visited during the
   // algorithm search
   animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
-    for (let i = 1; i <= visitedNodesInOrder.length; i++) {
-      if (i === visitedNodesInOrder.length) {
+    this.setState({ isAnimating: true });
+
+    for (let i = 1; i < visitedNodesInOrder.length; i++) {
+      if (i === visitedNodesInOrder.length - 1) {
         setTimeout(() => {
           this.animatePath(nodesInShortestPathOrder);
         }, 12 * i);
@@ -292,6 +304,8 @@ class Grid extends React.Component {
           .classList.add('node-shortest-path');
       }, 30 * i);
     }
+
+    this.setState({ isAnimating: false });
   }
 
   // perform the search algorithm, then animate the search process and final path
@@ -316,6 +330,8 @@ class Grid extends React.Component {
   // ALGORITHM END
 
   handleStartButtonClick = () => {
+    if (this.state.isAnimating) return;
+
     const { value } = this.props.selectedAlgorithm;
     if (value === 'dijkstra') {
       this.visualizeAlgorithm(dijkstra);
@@ -365,7 +381,6 @@ class Grid extends React.Component {
           handleResetGridButtonClick={this.resetGrid}
           handleStartButtonClick={this.handleStartButtonClick}
           handleClearSimulationButtonClick={this.clearSimulationResults}
-          handleMazeButtonClick={this.visualizeRecursiveDivision}
         />
         <div className="grid-wrapper">
           <div className="grid">{this.renderGrid()}</div>
